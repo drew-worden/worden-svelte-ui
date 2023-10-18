@@ -1,0 +1,40 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "\n\033[0;34m✨ Formatting source code... ✨\033[0m"
+npm run format
+echo "\n\033[0;34m✨ Linting source code... ✨\033[0m"
+npm run lint
+echo "\n\033[0;34m✨ Performing a type check and building a production build... ✨\033[0m"
+npm run build
+echo "\n\033[0;34m✨ Building library... ✨\033[0m"
+npm run package
+echo "\n\033[0;34m✅ Pre-commit checks completed successfully.\033[0m\n"
+echo "\033[0;34mWhat type of version bump would you like to perform?\033[0m\n\n[\033[35mpatch\033[0m] Just a small change or fix\n[\033[36mminor\033[0m] New feature that doesn't break existing features\n[\033[33mmajor\033[0m] Breaking change that will break existing features\n"
+
+while true; do
+  read version_type </dev/tty
+  if [ "$version_type" = "patch" ] || [ "$version_type" = "minor" ] || [ "$version_type" = "major" ]; then
+    break
+  else
+    echo "\033[31mInvalid version type. Please enter either 'patch', 'minor', or 'major'.\033[0m"
+  fi
+done
+
+# Run the appropriate `npm version` command
+case $version_type in
+	patch)
+		npm version patch --no-git-tag-version
+		;;
+	minor)
+		npm version minor --no-git-tag-version
+		;;
+	major)
+		npm version major --no-git-tag-version
+		;;
+esac
+
+echo "\n\033[0;34m✨ Service version updated. ✨\033[0m\n"
+git add package.json package-lock.json
+npm publish --access public
+echo "\n\033[0;34m✨ Package successfully published to NPM. ✨\033[0m\n"
